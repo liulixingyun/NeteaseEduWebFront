@@ -67,6 +67,12 @@ var lib = (function() {
             }
         }
 
+        /**
+         * 类jQuery选择器的简易实现
+         * @param  {String} elem  待获取元素相关的表达式
+         * @param  {Object} cls   待获取元素的父节点
+         * @return {Element | NodeList | HTMLCollection}  符合条件的元素节点或节点集
+         */
         function selector(expr, elem) {
             elem = elem || document;
             if (/^#([\w-]+)$/.test(expr)) {
@@ -183,6 +189,7 @@ var lib = (function() {
                 elem.attachEvent('on' + type, listener);
             }
         }
+
         /**
          * 删除事件监听
          * elem.removeEventListener   标准，兼容IE9+
@@ -198,6 +205,7 @@ var lib = (function() {
                 elem.detachEvent('on' + type, listener);
             }
         }
+
         /**
          * 获取事件对象
          * @param  {Object} event  事件对象
@@ -299,7 +307,7 @@ var lib = (function() {
 
 
         /**
-         * 封装AJAX get方法
+         * 封装AJAX get请求方式
          * @param  {String}   url      请求资源的URL
          * @param  {Object}   data     请求的查询参数对象
          * @param  {Function} callback 请求的回调函数，接收XMLHttpRequest对象的responseText属性作为参数
@@ -363,6 +371,7 @@ var lib = (function() {
         /**
          * 获得cookie值
          * @param {String} name    cookie属性名
+         * @return {String}        cookie属性值
          */
         function getCookie(name) {
             return getCookies()[name] || null;
@@ -394,9 +403,7 @@ var lib = (function() {
 
         /**
          * 删除cookie
-         * @param {String} name    cookie属性名（必须）
-         * @param {String} path    作用路径，默认为当前文档路径
-         * @param {String} domain  作用域，默认为当前文档域
+         * @param {String} name    cookie属性名
          */
         function removeCookie(name) {
             document.cookie = name + '=; max-age=0';
