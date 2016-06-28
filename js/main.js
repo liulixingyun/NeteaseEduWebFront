@@ -1,6 +1,5 @@
-
 window.onload = function() {
-  "use strict";
+    "use strict";
 
 
 
