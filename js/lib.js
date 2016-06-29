@@ -2,7 +2,7 @@
  * 通用工具库
  */
 var lib = (function() {
-    "use strict";
+    'use strict';
 
     /**
      * DOM处理子模块库
@@ -28,7 +28,7 @@ var lib = (function() {
                     clsStr = ' ' + nodes[i].className + ' ';
                     flag = true;
                     for (var j = 0; j < cls.length; j++) {
-                        if (clsStr.indexOf(' ' + cls[j] + '') == -1) {
+                        if (clsStr.indexOf(' ' + cls[j] + ' ') == -1) {
                             flag = false;
                             break;
                         }
@@ -47,7 +47,7 @@ var lib = (function() {
          * @return {String}       元素的文本
          */
         function getText(elem) {
-            if (typeof elem.textContent == "string") {
+            if (typeof elem.textContent == 'string') {
                 return elem.textContent;
             } else {
                 return elem.innerText;
@@ -60,7 +60,7 @@ var lib = (function() {
          * @param  {String} text  元素的文本
          */
         function setText(elem, text) {
-            if (typeof elem.textContent == "string") {
+            if (typeof elem.textContent == 'string') {
                 elem.textContent = text;
             } else {
                 elem.innerText = text;
@@ -74,11 +74,11 @@ var lib = (function() {
          * @return {Element | NodeList | HTMLCollection}  符合条件的元素节点或节点集
          */
         function selector(expr, elem) {
-            elem = elem || document;
+            elem = elem || document; // 若不传第二个参数，则默认选取选取document下的节点
             if (/^#([\w-]+)$/.test(expr)) {
-                return document.getElementById(expr);
+                return document.getElementById(expr.slice(1));
             } else if (/^.([\w-]+)$/.test(expr)) {
-                return getElemsByClassName(expr, elem);
+                return getElemsByClassName(elem, expr.slice(1));
             } else if (/^\w+$/.test(expr)) {
                 return elem.getElementsByTagName(expr);
             } else {
@@ -114,8 +114,8 @@ var lib = (function() {
          * @param  {String} cls  样式
          */
         function addClass(obj, cls) {
-            if (!this.hasClass(obj, cls)) {
-                obj.className += " " + cls;
+            if (!hasClass(obj, cls)) {
+                obj.className += ' ' + cls;
             }
         }
 
@@ -183,6 +183,7 @@ var lib = (function() {
          * @param {Function} listener 事件出发后的回调函数
          */
         function addEvent(elem, type, listener, useCapture) {
+            useCapture = useCapture || true;
             if (document.addEventListener) {
                 elem.addEventListener(type, listener, useCapture);
             } else {
@@ -264,6 +265,7 @@ var lib = (function() {
     var ajax = (function() {
 
         /**
+         * private
          * 序列化对象
          * @param  {Object}   obj     请求的查询参数对象
          */
@@ -282,6 +284,7 @@ var lib = (function() {
         }
 
         /**
+         * private
          * Create the XHR object.
          * @param  {String}   method   请求资源的方式
          * @param  {String}   url      请求资源的URL
@@ -289,11 +292,11 @@ var lib = (function() {
          */
         function createCorsRequest(method, url) {
             var xhr = new XMLHttpRequest();
-            if ("withCredentials" in xhr) {
+            if ('withCredentials' in xhr) {
                 // Check if the XMLHttpRequest object has a "withCredentials" property.
                 // "withCredentials" only exists on XMLHTTPRequest2 objects.
                 xhr.open(method, url, true);
-            } else if (typeof XDomainRequest != "undefined") {
+            } else if (typeof XDomainRequest != 'undefined') {
                 // Otherwise, check if XDomainRequest.
                 // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
                 xhr = new XDomainRequest();
@@ -313,7 +316,7 @@ var lib = (function() {
          * @param  {Function} callback 请求的回调函数，接收XMLHttpRequest对象的responseText属性作为参数
          */
         function getCorsRequest(url, data, callback) {
-            var xhr = createCorsRequest("get", url + '?' + serialize(data));
+            var xhr = createCorsRequest('get', url + '?' + serialize(data));
 
             if (!xhr) {
                 alert('CORS not supported');
@@ -323,10 +326,10 @@ var lib = (function() {
             // Response handlers.
             xhr.onload = function() {
                 callback(xhr.responseText);
-                console.log('CORS success');
+                console.log('CORS success! ' + xhr.responseText);
             };
             xhr.onerror = function() {
-                // callback("require failed!");
+                // callback('require failed!');
                 console.log('CORS failed');
             };
 
@@ -342,6 +345,19 @@ var lib = (function() {
      * cookie处理子模块库
      */
     var cookie = (function() {
+
+        /**
+         * private
+         * 将cookie有效期的天数，转化为cookie的失效时间
+         * @param {Number} expiDay  cookie有效期天数
+         * @return {Date}           cookie失效时间
+         */
+         function getExpi(expiDay){
+           var expi = new Date(); // 获取系统当前时间
+           var expiDuration = expiDay * 24 * 3600 * 1000; // 将30天转换成毫秒的整数
+           expi.setTime(expi.getTime() + expiDuration); // 将当前时间加上cookie生效时长，获得cookie失效时间
+           return expi;
+         }
 
         /**
          * 获得所有cookie的对象
@@ -390,7 +406,7 @@ var lib = (function() {
             if (name && value) {
                 var cookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
                 if (expires)
-                    cookie += '; expires=' + expires.toGMTString();
+                    cookie += '; expires=' + getExpi(expires).toGMTString();
                 if (path)
                     cookie += '; path=' + path;
                 if (domain)

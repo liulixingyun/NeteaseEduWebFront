@@ -8,7 +8,6 @@
   visibility: hidden;
 }
 .u-mask{
-  display: none;
   position: fixed;
   background-color: #000;
   opacity: .8;
@@ -75,7 +74,6 @@
   margin: 1px 14px 0 31px;
 }
 .m-nav .att{
-  display: inline-block;
   width: 54px;
   height: 21px;
   vertical-align: middle;
@@ -93,7 +91,6 @@
   background-color: #2fb556;
 }
 .m-nav .atted{
-  display: none;
   width: 104px;
   height: 19px;
   vertical-align: middle;
@@ -648,9 +645,6 @@
 /* /footer module */
 
 /* login module */
-.m-login{
-  display: none;
-}
 .m-login .login{
   position: fixed;
   z-index: 99;
@@ -686,6 +680,7 @@
   padding-left: 10px;
   border: 1px solid #dfdfdf;
   background-color: #fafafa;
+  font-size: 18px;
   box-shadow: 2px 2px #f1f1f1 inset;
 }
 .m-login .name{
@@ -723,7 +718,6 @@
 
 /* video module */
 .m-video{
-  display: none;
   position: fixed;
   z-index: 99;
   width: 950px;
@@ -791,3 +785,9 @@
 }
 /* /screen width < 1205px */
 /* /responsive layout */
+
+/* public higt priority */
+.z-hide{
+  display: none;
+}
+/* /public higt priority */
