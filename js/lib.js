@@ -77,7 +77,7 @@ var lib = (function() {
             elem = elem || document; // 若不传第二个参数，则默认选取选取document下的节点
             if (/^#([\w-]+)$/.test(expr)) {
                 return document.getElementById(expr.slice(1));
-            } else if (/^.([\w-]+)$/.test(expr)) {
+            } else if (/^\.([\w-]+)$/.test(expr)) { // 正则中 “.”一定要转义
                 return getElemsByClassName(elem, expr.slice(1));
             } else if (/^\w+$/.test(expr)) {
                 return elem.getElementsByTagName(expr);
@@ -117,6 +117,15 @@ var lib = (function() {
             if (!hasClass(obj, cls)) {
                 obj.className += ' ' + cls;
             }
+        }
+
+        /**
+         * 替换原来的样式为新样式
+         * @param  {Object} obj  元素节点
+         * @param  {String} cls  样式
+         */
+        function replaceClass(obj, cls) {
+            obj.className = cls;
         }
 
         /**
@@ -164,6 +173,7 @@ var lib = (function() {
             has: hasClass,
             add: addClass,
             rm: removeClass,
+            rp: replaceClass,
             toggle: toggleClass,
             get: getStyle
         }
@@ -352,12 +362,12 @@ var lib = (function() {
          * @param {Number} expiDay  cookie有效期天数
          * @return {Date}           cookie失效时间
          */
-         function getExpi(expiDay){
-           var expi = new Date(); // 获取系统当前时间
-           var expiDuration = expiDay * 24 * 3600 * 1000; // 将30天转换成毫秒的整数
-           expi.setTime(expi.getTime() + expiDuration); // 将当前时间加上cookie生效时长，获得cookie失效时间
-           return expi;
-         }
+        function getExpi(expiDay) {
+            var expi = new Date(); // 获取系统当前时间
+            var expiDuration = expiDay * 24 * 3600 * 1000; // 将30天转换成毫秒的整数
+            expi.setTime(expi.getTime() + expiDuration); // 将当前时间加上cookie生效时长，获得cookie失效时间
+            return expi;
+        }
 
         /**
          * 获得所有cookie的对象

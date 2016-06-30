@@ -75,14 +75,14 @@ window.onload = function() {
                 if ($.cookie.get('followSuc')) { // 并且本地已经关注
                     attedShow(); // 默认显示已关注
                     flag = true;
-                }else {                         // 或者，并且服务器端用户已经关注
-                  getAttValue(function(value) { // 异步获取服务器端关注状态值
-                    if(value == 1){
-                      $.cookie.set('followSuc', '1', expiDay);
-                      attedShow(); // 默认显示已关注
-                      flag = true;
-                    }
-                  });
+                } else { // 或者，并且服务器端用户已经关注
+                    getAttValue(function(value) { // 异步获取服务器端关注状态值
+                        if (value == 1) {
+                            $.cookie.set('followSuc', '1', expiDay);
+                            attedShow(); // 默认显示已关注
+                            flag = true;
+                        }
+                    });
                 }
             }
             return flag;
@@ -137,18 +137,14 @@ window.onload = function() {
             });
         }
 
-        /**
-         * 关注 事件处理
-         */
+        //关注 事件处理
         $.event.add(att, 'click', function() {
             if (!attStatusUpdate()) { // 更新关注状态，如果需要登录，显示登录窗口
-                loginShow();  // 显示登录窗口
+                loginShow(); // 显示登录窗口
             }
         });
 
-        /**
-         * 取消关注 事件处理
-         */
+        // 取消关注 事件处理
         $.event.add(cancel, 'click', function() {
             attShow();
             $.cookie.rm('followSuc');
@@ -156,9 +152,7 @@ window.onload = function() {
             // 测试环境下，没有post的接口，取消后刷新任然显示已关注
         });
 
-        /**
-         * 登录 事件处理
-         */
+        // 登录 事件处理
         $.event.add(btnSubmit, 'click', function() {
             var url = 'http://study.163.com/webDev/login.htm';
             var data = {
@@ -179,13 +173,102 @@ window.onload = function() {
             })
         });
 
-        /**
-         * 关闭登录窗口 事件处理
-         */
+        // 关闭登录窗口 事件处理
         $.event.add(btnClose, 'click', function() {
             loginHide();
         });
 
     })(lib);
 
+
+    /**
+     * m-banner 轮播banner
+     */
+    (function($) {
+        var CONS = { // 常量参数
+            AUTO_DURATION: 5000, // 自动轮播的时间间隔
+            FADE_DURATION: 500, // 动画效果持续时间
+            FADE_INTERVAL: 2, // 动画刷新间隔时间
+            FADE_TARGET: 100, // 点入动画的目标值，100，为完全不透明
+        }
+
+        var banner = $.dom.$('#m-banner');
+        var gallery = $.dom.$('.gallery', banner)[0];
+        var imgs = $.dom.$('li', gallery);
+        var pointer = $.dom.$('.u-pointer', banner)[0];
+        var pointers = $.dom.$('li', pointer);
+
+        var crt = 0, // 当前轮播的位置，初始值为0，即第一幅图
+            timer = null, // 淡入的timer
+            autotimer = null; // 自动切换的timer
+
+        /**
+         * 通过循环，给所有元素添加事件的处理
+         */
+        for (var i = 0; i < pointers.length; i++) {
+
+            pointers[i].index = i; // 将索引值添加到元素的属性中,供以后使用
+            imgs[i].index = i;
+
+            // 当鼠标移入，清除自动循环
+            $.event.add(imgs[i], 'mouseover', function() {
+                clearInterval(autotimer);
+            });
+
+            // 当鼠标移出，开始自动循环
+            $.event.add(imgs[i], 'mouseout', function() {
+                auto(this.index);
+            });
+
+            // 当点击指示器时，轮播到相应图片
+            $.event.add(pointers[i], 'click', function() {
+                clearInterval(autotimer);
+                play(this.index);
+            });
+        }
+
+        auto(crt); // 从当前图开始轮播，crt初始值为0，即，从第一幅图开始轮播
+
+        /**
+         * 自动轮播
+         * @param {Object} start  自动轮播开始的索引
+         */
+        function auto(index) {
+            clearInterval(autotimer);
+            autotimer = setInterval(function() {
+                index = ++index % imgs.length; // 确定下一个轮播的索引
+                play(index); // 轮播到第i个元素
+            }, CONS.AUTO_DURATION);
+        }
+
+        function play(index) {
+            clearInterval(timer);
+
+            pointers[crt].className = ''; // 重置上一个元素的样式
+            imgs[crt].className = 'z-hide';
+            crt = index; // 更新当前位置索引
+            pointers[crt].className = 'z-crt'; // 设置当前元素的样式
+            imgs[crt].className = 'z-crt';
+            imgs[crt].style.opacity = 0; // 初始化样式的透明度
+            imgs[crt].style.filter = 'alpha(opacity:"0")';
+
+            var alpha = parseInt(parseFloat($.css.get(imgs[crt], 'opacity')) * 100);
+
+            var speed = CONS.FADE_INTERVAL * CONS.FADE_TARGET / CONS.FADE_DURATION; // 计算速度
+            speed = alpha < CONS.FADE_TARGET ? speed : -speed; // 判断速度的方向
+
+            timer = setInterval(function() {
+                if (Math.abs(alpha - CONS.FADE_TARGET) <= Math.abs(speed)) { // 如果速度单位大于或等于剩下的间隔，则呈现完成状态
+                    clearInterval(timer);
+                    imgs[crt].style.opacity = CONS.FADE_TARGET / 100.0;
+                    imgs[crt].style.filter = 'alpha(opacity:' + CONS.FADE_TARGET + ')';
+                } else {
+                    alpha += speed;
+                    imgs[crt].style.opacity = alpha / 100.0;
+                    imgs[crt].style.filter = 'alpha(opacity:' + CONS.FADE_TARGET + ')';
+                }
+            }, CONS.FADE_INTERVAL);
+        }
+
+    })(lib);
 }

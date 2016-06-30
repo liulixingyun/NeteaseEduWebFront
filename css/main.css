@@ -175,9 +175,6 @@
 .m-banner .gallery .z-crt{
   display: block;
 }
-.m-banner .gallery .z-hide{
-  display: none;
-}
 .m-banner .u-pointer{
   position: absolute;
   bottom: 20px;
@@ -186,7 +183,7 @@
   height: 10px;
   text-align: center;
 }
-.m-banner .u-pointer span{
+.m-banner .u-pointer li{
   display: inline-block;
   width: 10px;
   height: 10px;
@@ -199,56 +196,22 @@
   background-color: #333;
 }
 /* 平稳退化，低版本浏览器不支持淡入效果，但是轮播功能可以正常使用 */
-@-webkit-keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-@-moz-keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-@-o-keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
+/* 已经使用javascript兼容实现*/
+/*
 @keyframes fade-in {
   0% {
-    opacity: 0; /* 初始状态 不透明度为0 */
+    opacity: 0;
   }
   100% {
-    opacity: 1; /* 结尾状态 不透明度为1 */
+    opacity: 1;
   }
 }
 .m-banner .gallery img {
-  -webkit-animation-name: fade-in;
-  -webkit-animation-duration: 0.5s;
-  -webkit-animation-iteration-count: 1;
-  -webkit-animation-delay: 0s;
-  -moz-animation-name: fade-in;
-  -moz-animation-duration: 0.5s;
-  -moz-animation-iteration-count: 1;
-  -moz-animation-delay: 0s;
-  -o-animation-name: fade-in;
-  -o-animation-duration: 0.5s;
-  -o-animation-iteration-count: 1;
-  -o-animation-delay: 0s;
-  animation-name: fade-in; /* 动画名称 */
-  animation-duration: 0.5s; /* 动画持续时间 */
-  animation-iteration-count: 1; /* 动画次数 */
-  animation-delay: 0s; /* 延迟时间 */
-}
+  animation-name: fade-in;
+  animation-duration: 0.5s;
+  animation-iteration-count: 1;
+  animation-delay: 0s;
+} */
 /* /banner module */
 
 /* introduce product module */
