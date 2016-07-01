@@ -328,6 +328,7 @@
   height: 50px;
   text-align: center;
   background-color: #fff;
+  cursor: pointer;
 }
 .m-tab .z-crt{
   background-color: #39a030;
@@ -382,7 +383,7 @@
   /* /default course list item submodule */
   /* hover course list item submodule */
   .m-course .course-hover{
-    display: none;
+    /*display: none;*/
     position: absolute;
     z-index: 80;
     width: 479px;
@@ -435,8 +436,7 @@
   font: 14px/20px "Microsoft YaHei",sans-serif;
   color: #666;
 }
-.m-page a{
-  display: inline-block;
+.m-page li{
   float: left;
   width: 20px;
   height: 20px;
@@ -444,7 +444,7 @@
   text-align: center;
   cursor: pointer;
 }
-.m-page a:hover{
+.m-page li:hover{
   background-color: #9dd8b1;
 }
 .m-page .prev, .m-page .next{

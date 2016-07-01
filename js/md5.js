@@ -5,6 +5,7 @@
  * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
  * Distributed under the BSD License
  * See http://pajhome.org.uk/crypt/md5 for more info.
+ * @param {Object} $   工具库对象lib的引用
  */
 (function($) {
     'use strict';
@@ -388,5 +389,5 @@
         b64_hmac_md5: b64_hmac_md5,
         any_hmac_md5: any_hmac_md5
     }
-    
+
 })(lib);

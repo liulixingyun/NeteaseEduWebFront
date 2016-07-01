@@ -67,6 +67,11 @@ var lib = (function() {
             }
         }
 
+        /**
+         * 获得第一个孩子元素节点
+         * @param  {Object} elem  父元素节点
+         * @return {Object}       第一个孩子元素节点
+         */
         function getFirstElementChild(elem) {
             if (elem.nodeType !== 1) { // 如果不是元素节点，直接返回
                 return null;
@@ -77,10 +82,34 @@ var lib = (function() {
             var nodes = elem.children,
                 node,
                 l = nodes.length;
-            for (var i = 0; i < l; ++i) {
+            for (var i = 0; i < l; i++) {
                 node = nodes[i];
                 if (node.nodeType === 1) {
-                    return n;
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * 获得最后一个孩子元素节点
+         * @param  {Object} elem  父元素节点
+         * @return {Object}       最后一个孩子元素节点
+         */
+        function getLastElementChild(elem) {
+            if (elem.nodeType !== 1) { // 如果不是元素节点，直接返回
+                return null;
+            }
+            if (elem.lastElementChild) {
+                return elem.lastElementChild;
+            }
+            var nodes = elem.children,
+                node,
+                l = nodes.length - 1;
+            for (var i = 0; i >= 0; i--) {
+                node = nodes[i];
+                if (node.nodeType === 1) {
+                    return node;
                 }
             }
             return null;
@@ -109,7 +138,8 @@ var lib = (function() {
             $: selector,
             getText: getText,
             setText: setText,
-            firstElem: getFirstElementChild
+            firstElem: getFirstElementChild,
+            lastElem: getLastElementChild
         }
     })();
 
@@ -213,7 +243,7 @@ var lib = (function() {
          * @param {Function} listener 事件出发后的回调函数
          */
         function addEvent(elem, type, listener, useCapture) {
-            useCapture = useCapture || true;
+            useCapture = useCapture || false;
             if (document.addEventListener) {
                 elem.addEventListener(type, listener, useCapture);
             } else {
@@ -338,7 +368,6 @@ var lib = (function() {
             return xhr;
         }
 
-
         /**
          * 封装AJAX get请求方式
          * @param  {String}   url      请求资源的URL
@@ -356,7 +385,7 @@ var lib = (function() {
             // Response handlers.
             xhr.onload = function() {
                 callback(xhr.responseText);
-                console.log('CORS success! ' + xhr.responseText);
+                // console.log('CORS success! ' + xhr.responseText);
             };
             xhr.onerror = function() {
                 // callback('require failed!');

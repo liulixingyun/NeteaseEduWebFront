@@ -243,11 +243,11 @@ window.onload = function() {
         function play(index) {
             clearInterval(timer);
 
-            pointers[crt].className = ''; // 重置上一个元素的样式
-            imgs[crt].className = 'z-hide';
+            pointers[crt].setAttribute('class', ''); // 重置上一个元素的样式
+            imgs[crt].setAttribute('class', 'z-hide');
             crt = index; // 更新当前位置索引
-            pointers[crt].className = 'z-crt'; // 设置当前元素的样式
-            imgs[crt].className = 'z-crt';
+            pointers[crt].setAttribute('class', 'z-crt'); // 设置当前元素的样式
+            imgs[crt].setAttribute('class', 'z-crt');
             imgs[crt].style.opacity = 0; // 初始化样式的透明度
             imgs[crt].style.filter = 'alpha(opacity:"0")';
 
@@ -276,12 +276,12 @@ window.onload = function() {
      */
     (function($) {
         var CONS = { // 常量参数
+            URL: 'http://study.163.com/webDev/hotcouresByCategory.htm',
             SHOW_NUMBER: 10, // 最热排行显示的课程数量
             INTERVAL: 5000 // 动画刷新间隔时间
         }
 
-        var url = 'http://study.163.com/webDev/hotcouresByCategory.htm';
-        $.ajax.get(url, null, function(resp) { //获取课程数据，并异步处理
+        $.ajax.get(CONS.URL, null, function(resp) { //获取课程数据，并异步处理
 
             var hotCourses = JSON.parse(resp); // 解析JSON
 
@@ -322,7 +322,7 @@ window.onload = function() {
                 var number = document.createElement('div');
 
                 img.setAttribute('class', 'picture');
-                img.setAttribute('src', hotCourses[i].middlePhotoUrl);
+                img.setAttribute('src', hotCourses[i].smallPhotoUrl);
                 img.setAttribute('alt', '最热课程');
                 title.setAttribute('class', 'title');
                 number.setAttribute('class', 'number');
@@ -334,7 +334,7 @@ window.onload = function() {
                 li.appendChild(title);
                 li.appendChild(number);
 
-                li.index = i; // 给每隔课程节点添加索引属性
+                li.index = i; // 给每个课程节点添加索引属性
 
                 return li;
             }
@@ -342,5 +342,331 @@ window.onload = function() {
 
     })(lib);
 
+    /**
+     * m-course 课程模块
+     */
+    (function($) {
+
+        var CONS = { // 常量参数
+            URL: 'http://study.163.com/webDev/couresByCategory.htm',
+            Page_SIZE: 20, // 每页返回的个数
+            TYPE: { // 类型
+                PRODUCT_DESIGN: 10,
+                PROGRAM_LANGUAGE: 20
+            }
+        }
+
+        /**
+         * 初始化课程列表的显示
+         */
+        function initCourses() {
+            var data = {
+                pageNo: 1,
+                psize: CONS.Page_SIZE,
+                type: CONS.TYPE.PRODUCT_DESIGN
+            };
+
+            loadCourses(data);
+        }
+
+        initCourses(); // 初始化课程列表的显示
+
+        /**
+         * m-tab 课程列表切换 子模块
+         * @param {Object} $   工具库对象lib的引用
+         */
+        var tab = (function($) {
+            var crtType = CONS.TYPE.PRODUCT_DESIGN; // 当前的类型
+            var tabs = $.dom.$('#m-tab');
+
+            for (var i = 0; i < tabs.children.length; i++) {
+                tabs.children[i].index = i;
+                $.event.add(tabs.children[i], 'click', function() { // 添加切换课程类型的点击事件处理
+                    var data = {
+                        pageNo: 1,
+                        psize: CONS.Page_SIZE,
+                        type: this.index == 0 ? CONS.TYPE.PRODUCT_DESIGN : CONS.TYPE.PROGRAM_LANGUAGE
+                    };
+
+                    crtType = data.type; // 更新当前的课程类型的记录
+
+                    loadCourses(data); // 获取并显示课程
+
+                    clearAllTabStyle();
+
+                    this.setAttribute('class', 'z-crt'); // 更新当前tab为选中状态
+
+                    firstPageSelected(); // 更新page选中第1页
+                });
+            }
+
+            /**
+             * 更新page选中第1页
+             * 两个子模块循环依赖，只好在tab子模块下操作
+             * 用能解决循环依赖的模块系统时，应将此功能写在page子模块
+             */
+            function firstPageSelected() {
+                var pages = $.dom.$('#m-page');
+
+                for (var i = 1; i < pages.children.length - 1; i++) {
+                    pages.children[i].setAttribute('class', '');
+                }
+                pages.children[1].setAttribute('class', 'z-crt');
+            }
+
+            /**
+             * 清空所有的tab的选中状态
+             */
+            function clearAllTabStyle() {
+                for (var i = 0; i < tabs.children.length; i++) {
+                    tabs.children[i].setAttribute('class', '');
+                }
+            }
+
+            /**
+             * 获得当前的课程类型信息
+             */
+            function getCrtType() {
+                return crtType;
+            }
+
+            return {
+                crtType: getCrtType // 获得当前的课程类型信息，供其它模块调用
+            }
+
+        })($);
+
+        /**
+         * m-page 分页显示课程列表 子模块
+         * @param {Object} $   工具库对象lib的引用
+         * @param {Object} tab tab子模块的引用
+         */
+        var page = (function($, tab) {
+            var crtPage = 1; // 当前是第几页
+            var pages = $.dom.$('#m-page');
+
+            // 为每个切换课程分页的分页按钮添加点击事件处理
+            for (var i = 1; i < pages.children.length - 1; i++) {
+                pages.children[i].index = i;
+                $.event.add(pages.children[i], 'click', function() { // 添加切换课程分页的点击事件处理
+                    updateCourses(this.index);
+                });
+            }
+            // 添加上一页的点击事件处理
+            $.event.add($.dom.firstElem(pages), 'click', function() {
+                if (crtPage == 1) {
+                    return;
+                }
+                updateCourses(--crtPage);
+            });
+            // 添加下一页的点击事件处理
+            $.event.add($.dom.lastElem(pages), 'click', function() {
+                if (crtPage == pages.children.length - 2) {
+                    return;
+                }
+                updateCourses(++crtPage);
+            });
+
+            /**
+             * 更新课程
+             */
+            function updateCourses(pageNum) {
+
+                var data = {
+                    pageNo: pageNum,
+                    psize: CONS.Page_SIZE,
+                    type: tab.crtType()
+                }
+
+                crtPage = data.pageNo; // 更新当前的课程页数的记录
+
+                loadCourses(data); // 获取并显示课程
+
+                clearAllPageStyle();
+
+                pages.children[crtPage].setAttribute('class', 'z-crt');
+            }
+
+            /**
+             * 清空所有的选中状态
+             */
+            function clearAllPageStyle() {
+                for (var i = 1; i < pages.children.length - 1; i++) {
+                    pages.children[i].setAttribute('class', '');
+                }
+            }
+
+            /**
+             * 获得当前的课程类型信息
+             */
+            function getCrtPage() {
+                return crtPage;
+            }
+
+            return {
+                crtPage: getCrtPage // 获得当前的课程列表是第几页，供其它模块调用
+            }
+
+        })($, tab);
+
+
+        /**
+         *  获取并显示课程
+         * @param {Object} data  异步获取课程信息的参数信息
+         */
+        function loadCourses(data) {
+
+            $.ajax.get(CONS.URL, data, function(resp) { //获取课程数据，并异步处理
+
+                var courses = JSON.parse(resp); // 解析JSON
+
+                var list = $.dom.$('#m-course');
+
+                // 清空所有已有子节点
+                while ($.dom.firstElem(list)) {
+                    list.removeChild($.dom.firstElem(list));
+                }
+
+                // 创建当页所有子节点
+                for (var i = 0; i < data.psize; i++) {
+                    list.appendChild(createLiNode(i));
+                }
+
+                /**
+                 * 创建DOM节点
+                 * <li class="course">
+                 *   <img class="picture" src="#" alt="课程">
+                 *   <h3 class="title">混音全揭秘 舞曲实战篇 混音全揭秘 舞曲实战篇 揭秘音乐揭</h3>
+                 *   <div class="org">音乐幇</div>
+                 *   <div class="number">123456</div>
+                 *   <div class="price">￥800.00</div>
+                 * </li>
+                 * @param {Number} i 创建节点的索引值，用以从对象中获取到相应的值
+                 * @return {Object} DOM节点<li>
+                 */
+                function createLiNode(i) {
+
+                    var li = document.createElement('li');
+                    li.setAttribute('class', 'course');
+
+                    var img = document.createElement('img');
+                    var title = document.createElement('h3');
+                    var org = document.createElement('div');
+                    var number = document.createElement('div');
+                    var price = document.createElement('div');
+
+                    img.setAttribute('class', 'picture');
+                    img.setAttribute('src', courses.list[i].middlePhotoUrl);
+                    img.setAttribute('alt', '课程');
+                    title.setAttribute('class', 'title');
+                    org.setAttribute('class', 'org');
+                    number.setAttribute('class', 'number');
+                    price.setAttribute('class', 'price');
+
+                    $.dom.setText(title, courses.list[i].name);
+                    $.dom.setText(org, courses.list[i].provider);
+                    $.dom.setText(number, courses.list[i].learnerCount);
+                    $.dom.setText(price, courses.list[i].price ? '￥' + courses.list[i].price : '免费');
+
+                    li.appendChild(img);
+                    li.appendChild(title);
+                    li.appendChild(org);
+                    li.appendChild(number);
+                    li.appendChild(price);
+
+                    li.index = i; // 给每个课程节点添加索引属性
+
+                    // 当鼠标移入时，显示对应的悬浮弹窗
+                    // mouseenter & mouseleave 仅支持冒泡阶段，如果设置为捕获阶段，则不会屏蔽子元素的触发
+                    $.event.add(li, 'mouseenter', function() {
+                        var hoverLi = createHoverLiNode(i);
+
+                        hoverLi.style.left = this.offsetLeft - 10 + 'px';
+                        hoverLi.style.top = this.offsetTop - 10 + 'px';
+
+                        list.appendChild(hoverLi);
+                    }, false);
+
+                    return li;
+                }
+
+                /**
+                 * 创建DOM节点
+                 * <li class="course-hover">
+                 *   <div class="clearfix">
+                 *     <img class="picture" src="#" alt="课程">
+                 *     <div class="abstract">
+                 *       <h3 class="title">手绘画系列教程</h3>
+                 *       <div class="number">57人在学</div>
+                 *       <div class="org">发布者：几分钟网</div>
+                 *       <div class="category">分类： 手绘设计</div>
+                 *     </div>
+                 *   </div>
+                 *   <p class="article">生活中不乏有很多美好的画面，何不用画笔记录下来呢？那么就跟几分钟网一起来记录美好画面吧！</p>
+                 * </li>
+                 * @param {Number} i 创建节点的索引值，用以从对象中获取到相应的值
+                 * @return {Object} DOM节点<li>
+                 */
+                function createHoverLiNode(i) {
+
+                    var li = document.createElement('li');
+                    li.setAttribute('class', 'course-hover');
+
+                    var clearfix = document.createElement('div');
+                    clearfix.setAttribute('class', 'clearfix');
+
+                    var picture = document.createElement('img');
+                    picture.setAttribute('class', 'picture');
+                    picture.setAttribute('src', courses.list[i].middlePhotoUrl);
+                    picture.setAttribute('alt', '课程');
+
+                    var abstract = document.createElement('div');
+                    abstract.setAttribute('class', 'abstract');
+
+                    var title = document.createElement('h3');
+                    title.setAttribute('class', 'title');
+                    $.dom.setText(title, courses.list[i].name);
+
+                    var number = document.createElement('div');
+                    number.setAttribute('class', 'number');
+                    $.dom.setText(number, courses.list[i].learnerCount + ' 人在学');
+
+                    var org = document.createElement('div');
+                    org.setAttribute('class', 'org');
+                    $.dom.setText(org, '发布者： ' + courses.list[i].provider);
+
+                    var category = document.createElement('div');
+                    category.setAttribute('class', 'category');
+                    $.dom.setText(category, '分类： ' + courses.list[i].categoryName);
+
+                    var article = document.createElement('p');
+                    article.setAttribute('class', 'article');
+                    $.dom.setText(article, courses.list[i].description);
+
+                    li.appendChild(clearfix);
+                    li.appendChild(article);
+
+                    clearfix.appendChild(picture);
+                    clearfix.appendChild(abstract);
+
+                    abstract.appendChild(title);
+                    abstract.appendChild(number);
+                    abstract.appendChild(org);
+                    abstract.appendChild(category);
+
+                    li.index = i; // 给每个课程节点添加索引属性
+
+                    // 当鼠标移出时，删除自己这个悬浮弹窗
+                    // mouseenter & mouseleave 仅支持冒泡阶段，如果设置为捕获阶段，则不会屏蔽子元素的触发
+                    $.event.add(li, 'mouseleave', function() {
+                        list.removeChild(this);
+                    }, false);
+
+                    return li;
+                }
+            });
+        }
+
+    })(lib);
 
 }
