@@ -67,6 +67,25 @@ var lib = (function() {
             }
         }
 
+        function getFirstElementChild(elem) {
+            if (elem.nodeType !== 1) { // 如果不是元素节点，直接返回
+                return null;
+            }
+            if (elem.firstElementChild) {
+                return elem.firstElementChild;
+            }
+            var nodes = elem.children,
+                node,
+                l = nodes.length;
+            for (var i = 0; i < l; ++i) {
+                node = nodes[i];
+                if (node.nodeType === 1) {
+                    return n;
+                }
+            }
+            return null;
+        }
+
         /**
          * 类jQuery选择器的简易实现
          * @param  {String} elem  待获取元素相关的表达式
@@ -89,7 +108,8 @@ var lib = (function() {
         return {
             $: selector,
             getText: getText,
-            setText: setText
+            setText: setText,
+            firstElem: getFirstElementChild
         }
     })();
 

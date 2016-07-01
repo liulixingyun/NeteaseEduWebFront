@@ -131,7 +131,6 @@ window.onload = function() {
         function getAttValue(getValue) {
 
             var url = 'http://study.163.com/webDev/attention.htm';
-            var a;
             $.ajax.get(url, null, function(resp) {
                 getValue(resp);
             });
@@ -182,7 +181,7 @@ window.onload = function() {
 
 
     /**
-     * m-banner 轮播banner
+     * m-banner 轮播banner模块
      */
     (function($) {
         var CONS = { // 常量参数
@@ -271,4 +270,77 @@ window.onload = function() {
         }
 
     })(lib);
+
+    /**
+     * m-hot 最热排行模块
+     */
+    (function($) {
+        var CONS = { // 常量参数
+            SHOW_NUMBER: 10, // 最热排行显示的课程数量
+            INTERVAL: 5000 // 动画刷新间隔时间
+        }
+
+        var url = 'http://study.163.com/webDev/hotcouresByCategory.htm';
+        $.ajax.get(url, null, function(resp) { //获取课程数据，并异步处理
+
+            var hotCourses = JSON.parse(resp); // 解析JSON
+
+            var hot = $.dom.$('#m-hot');
+            var list = $.dom.$('.list', hot)[0];
+
+            // 初始化要显示的节点
+            for (var i = 0; i < CONS.SHOW_NUMBER; i++) {
+                list.appendChild(createLiNode(i));
+            }
+
+            // 每隔5s刷新一次最热课程列表。循环刷新，不需要清除IntervalID
+            setInterval(function() {
+                // var i = list.firstElementChild.index; // 获取当前第一个元素的索引值
+                var i = $.dom.firstElem(list).index;
+                // list.removeChild(list.firstElementChild); // 删除第一个元素
+                list.removeChild($.dom.firstElem(list));
+
+                list.appendChild(createLiNode((i + CONS.SHOW_NUMBER) % hotCourses.length)); // 将新的元素添加到最后
+            }, CONS.INTERVAL);
+
+            /**
+             * 创建DOM节点
+             * <li>
+             *  <img class="picture" src="#" alt="最热课程">
+             *  <h3 class="title">舞曲揭秘音乐揭秘舞曲揭秘音乐揭秘</h3>
+             *  <div class="number">123456</div>
+             * </li>
+             * @param {Number} i 创建节点的索引值，用以从对象中获取到相应的值
+             * @return {Object} DOM节点<li>
+             */
+            function createLiNode(i) {
+
+                var li = document.createElement('li');
+
+                var img = document.createElement('img');
+                var title = document.createElement('h3');
+                var number = document.createElement('div');
+
+                img.setAttribute('class', 'picture');
+                img.setAttribute('src', hotCourses[i].middlePhotoUrl);
+                img.setAttribute('alt', '最热课程');
+                title.setAttribute('class', 'title');
+                number.setAttribute('class', 'number');
+
+                $.dom.setText(title, hotCourses[i].name);
+                $.dom.setText(number, hotCourses[i].learnerCount);
+
+                li.appendChild(img);
+                li.appendChild(title);
+                li.appendChild(number);
+
+                li.index = i; // 给每隔课程节点添加索引属性
+
+                return li;
+            }
+        });
+
+    })(lib);
+
+
 }
