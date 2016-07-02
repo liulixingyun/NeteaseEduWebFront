@@ -359,7 +359,7 @@ window.onload = function() {
 
         var tabs = $.dom.$('#m-tab');
         var pages = $.dom.$('#m-page');
-        var             crtPage = 1; // 当前是第几页
+        var crtPage = 1; // 当前是第几页
         var crtType = CONS.TYPE.PRODUCT_DESIGN; // 当前的类型
         var totalPage = null; // 服务器端总共有多少页的数据
         var showPageNum = null; // 屏幕中显示的分页器的个数
@@ -425,33 +425,33 @@ window.onload = function() {
             };
             $.ajax.get(CONS.URL, data, function(resp) { //获取课程数据，并异步处理
 
-                var courses = JSON.parse(resp); // 解析JSON
+                var courseList = JSON.parse(resp); // 解析JSON
 
-                totalPage = courses.totalPage;
+                totalPage = courseList.totalPage;
                 showPageNum = totalPage > CONS.MAX_PAGE_SHOW ? CONS.MAX_PAGE_SHOW : totalPage;
 
-                var list = $.dom.$('#m-course');
+                var courses = $.dom.$('#m-course');
 
-                createCourses();
-                createPages();
+                createCourses();  // 创建所有课程节点
+                createPages();    // 创建所有分页器节点
 
                 /**
-                 * 创建所有课程节点
+                 * 创建所有的课程节点
                  */
                 function createCourses() {
                     // 清空所有已有子节点
-                    while ($.dom.firstElem(list)) {
-                        list.removeChild($.dom.firstElem(list));
+                    while ($.dom.firstElem(courses)) {
+                        courses.removeChild($.dom.firstElem(courses));
                     }
 
                     // 创建当页所有子节点
                     for (var i = 0; i < data.psize; i++) { // 注意js中i的非块级作用域
-                        list.appendChild(createCourseLiNode(i));
+                        courses.appendChild(createCourseLiNode(i));
                     }
                 }
 
                 /**
-                 * 创建所有的分页器节点,实现简单分页同能
+                 * 创建所有的分页器节点,实现简单分页功能
                  * 通过上一页和下一页可以实现所有页面的浏览
                  */
                 function createPages() {
@@ -471,7 +471,6 @@ window.onload = function() {
                         isPrev = false; // 恢复标志
                     }
 
-
                     updatePageStatus(); // 更新分页器的状态
 
                     /**
@@ -485,8 +484,6 @@ window.onload = function() {
                         pages.children[crtPage - minPage + 1].setAttribute('class', 'z-crt');
                     }
                 }
-
-
 
                 /**
                  * 创建DOM节点
@@ -534,17 +531,17 @@ window.onload = function() {
                     var price = document.createElement('div');
 
                     img.setAttribute('class', 'picture');
-                    img.setAttribute('src', courses.list[i].middlePhotoUrl);
+                    img.setAttribute('src', courseList.list[i].middlePhotoUrl);
                     img.setAttribute('alt', '课程');
                     title.setAttribute('class', 'title');
                     org.setAttribute('class', 'org');
                     number.setAttribute('class', 'number');
                     price.setAttribute('class', 'price');
 
-                    $.dom.setText(title, courses.list[i].name);
-                    $.dom.setText(org, courses.list[i].provider);
-                    $.dom.setText(number, courses.list[i].learnerCount);
-                    $.dom.setText(price, courses.list[i].price ? '￥' + courses.list[i].price : '免费');
+                    $.dom.setText(title, courseList.list[i].name);
+                    $.dom.setText(org, courseList.list[i].provider);
+                    $.dom.setText(number, courseList.list[i].learnerCount);
+                    $.dom.setText(price, courseList.list[i].price ? '￥' + courseList.list[i].price : '免费');
 
                     li.appendChild(img);
                     li.appendChild(title);
@@ -562,7 +559,7 @@ window.onload = function() {
                         hoverLi.style.left = this.offsetLeft - 10 + 'px';
                         hoverLi.style.top = this.offsetTop - 10 + 'px';
 
-                        list.appendChild(hoverLi);
+                        courses.appendChild(hoverLi);
                     }, false);
 
                     return li;
@@ -595,7 +592,7 @@ window.onload = function() {
 
                     var picture = document.createElement('img');
                     picture.setAttribute('class', 'picture');
-                    picture.setAttribute('src', courses.list[i].middlePhotoUrl);
+                    picture.setAttribute('src', courseList.list[i].middlePhotoUrl);
                     picture.setAttribute('alt', '课程');
 
                     var abstract = document.createElement('div');
@@ -603,23 +600,23 @@ window.onload = function() {
 
                     var title = document.createElement('h3');
                     title.setAttribute('class', 'title');
-                    $.dom.setText(title, courses.list[i].name);
+                    $.dom.setText(title, courseList.list[i].name);
 
                     var number = document.createElement('div');
                     number.setAttribute('class', 'number');
-                    $.dom.setText(number, courses.list[i].learnerCount + ' 人在学');
+                    $.dom.setText(number, courseList.list[i].learnerCount + ' 人在学');
 
                     var org = document.createElement('div');
                     org.setAttribute('class', 'org');
-                    $.dom.setText(org, '发布者： ' + courses.list[i].provider);
+                    $.dom.setText(org, '发布者： ' + courseList.list[i].provider);
 
                     var category = document.createElement('div');
                     category.setAttribute('class', 'category');
-                    $.dom.setText(category, '分类： ' + courses.list[i].categoryName);
+                    $.dom.setText(category, '分类： ' + courseList.list[i].categoryName);
 
                     var article = document.createElement('p');
                     article.setAttribute('class', 'article');
-                    $.dom.setText(article, courses.list[i].description);
+                    $.dom.setText(article, courseList.list[i].description);
 
                     li.appendChild(clearfix);
                     li.appendChild(article);
@@ -637,7 +634,7 @@ window.onload = function() {
                     // 当鼠标移出时，删除自己这个悬浮弹窗
                     // mouseenter & mouseleave 仅支持冒泡阶段，如果设置为捕获阶段，则不会屏蔽子元素的触发
                     $.event.add(li, 'mouseleave', function() {
-                        list.removeChild(this);
+                        courses.removeChild(this);
                     }, false);
 
                     return li;
