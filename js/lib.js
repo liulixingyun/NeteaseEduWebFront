@@ -243,7 +243,7 @@ var lib = (function() {
          * @param {Function} listener 事件出发后的回调函数
          */
         function addEvent(elem, type, listener, useCapture) {
-            useCapture = useCapture || false;
+            // useCapture = useCapture || false;
             if (document.addEventListener) {
                 elem.addEventListener(type, listener, useCapture);
             } else {

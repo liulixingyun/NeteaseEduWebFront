@@ -290,7 +290,7 @@ window.onload = function() {
 
             // 初始化要显示的节点
             for (var i = 0; i < CONS.SHOW_NUMBER; i++) {
-                list.appendChild(createLiNode(i));
+                list.appendChild(createHotLiNode(i));
             }
 
             // 每隔5s刷新一次最热课程列表。循环刷新，不需要清除IntervalID
@@ -300,7 +300,7 @@ window.onload = function() {
                 // list.removeChild(list.firstElementChild); // 删除第一个元素
                 list.removeChild($.dom.firstElem(list));
 
-                list.appendChild(createLiNode((i + CONS.SHOW_NUMBER) % hotCourses.length)); // 将新的元素添加到最后
+                list.appendChild(createHotLiNode((i + CONS.SHOW_NUMBER) % hotCourses.length)); // 将新的元素添加到最后
             }, CONS.INTERVAL);
 
             /**
@@ -313,7 +313,7 @@ window.onload = function() {
              * @param {Number} i 创建节点的索引值，用以从对象中获取到相应的值
              * @return {Object} DOM节点<li>
              */
-            function createLiNode(i) {
+            function createHotLiNode(i) {
 
                 var li = document.createElement('li');
 
@@ -353,183 +353,161 @@ window.onload = function() {
             TYPE: { // 类型
                 PRODUCT_DESIGN: 10,
                 PROGRAM_LANGUAGE: 20
-            }
+            },
+            MAX_PAGE_SHOW: 8
         }
 
-        /**
-         * 初始化课程列表的显示
-         */
-        function initCourses() {
-            var data = {
-                pageNo: 1,
-                psize: CONS.Page_SIZE,
-                type: CONS.TYPE.PRODUCT_DESIGN
-            };
+        var tabs = $.dom.$('#m-tab');
+        var pages = $.dom.$('#m-page');
+        var             crtPage = 1; // 当前是第几页
+        var crtType = CONS.TYPE.PRODUCT_DESIGN; // 当前的类型
+        var totalPage = null; // 服务器端总共有多少页的数据
+        var showPageNum = null; // 屏幕中显示的分页器的个数
+        var isPrev = false,
+            isNext = false;
 
-            loadCourses(data);
+        loadCourses(); // 初始化课程列表的显示
+
+
+        for (var i = 0; i < tabs.children.length; i++) {
+            tabs.children[i].index = i;
+            $.event.add(tabs.children[i], 'click', function() { // 添加切换课程类型的点击事件处理
+                crtPage = 1;
+                var previndex = crtType == CONS.TYPE.PRODUCT_DESIGN ? 0 : 1;
+                crtType = this.index == 0 ? CONS.TYPE.PRODUCT_DESIGN : CONS.TYPE.PROGRAM_LANGUAGE;
+
+                this.parentNode.children[previndex].setAttribute('class', ''); // 取消上一个tab的选中状态
+                this.setAttribute('class', 'z-crt'); // 更新当前tab为选中状态
+
+                loadCourses(); // 更新课程信息
+            });
         }
 
-        initCourses(); // 初始化课程列表的显示
-
-        /**
-         * m-tab 课程列表切换 子模块
-         * @param {Object} $   工具库对象lib的引用
-         */
-        var tab = (function($) {
-            var crtType = CONS.TYPE.PRODUCT_DESIGN; // 当前的类型
-            var tabs = $.dom.$('#m-tab');
-
-            for (var i = 0; i < tabs.children.length; i++) {
-                tabs.children[i].index = i;
-                $.event.add(tabs.children[i], 'click', function() { // 添加切换课程类型的点击事件处理
-                    var data = {
-                        pageNo: 1,
-                        psize: CONS.Page_SIZE,
-                        type: this.index == 0 ? CONS.TYPE.PRODUCT_DESIGN : CONS.TYPE.PROGRAM_LANGUAGE
-                    };
-
-                    crtType = data.type; // 更新当前的课程类型的记录
-
-                    loadCourses(data); // 获取并显示课程
-
-                    clearAllTabStyle();
-
-                    this.setAttribute('class', 'z-crt'); // 更新当前tab为选中状态
-
-                    firstPageSelected(); // 更新page选中第1页
-                });
+        // 添加上一页的点击事件处理
+        $.event.add($.dom.firstElem(pages), 'click', function() {
+            if (crtPage == 1) {
+                return;
+            }
+            var maxPage = pages.children[showPageNum].index;
+            var minPage = pages.children[1].index;
+            crtPage--;
+            if (crtPage < minPage) {
+                isPrev = true;
             }
 
-            /**
-             * 更新page选中第1页
-             * 两个子模块循环依赖，只好在tab子模块下操作
-             * 用能解决循环依赖的模块系统时，应将此功能写在page子模块
-             */
-            function firstPageSelected() {
-                var pages = $.dom.$('#m-page');
-
-                for (var i = 1; i < pages.children.length - 1; i++) {
-                    pages.children[i].setAttribute('class', '');
-                }
-                pages.children[1].setAttribute('class', 'z-crt');
+            loadCourses();
+        });
+        // 添加下一页的点击事件处理
+        $.event.add($.dom.lastElem(pages), 'click', function() {
+            if (crtPage == totalPage) {
+                return;
+            }
+            var maxPage = pages.children[showPageNum].index;
+            var minPage = pages.children[1].index;
+            crtPage++;
+            if (crtPage > maxPage) {
+                isNext = true;
             }
 
-            /**
-             * 清空所有的tab的选中状态
-             */
-            function clearAllTabStyle() {
-                for (var i = 0; i < tabs.children.length; i++) {
-                    tabs.children[i].setAttribute('class', '');
-                }
-            }
-
-            /**
-             * 获得当前的课程类型信息
-             */
-            function getCrtType() {
-                return crtType;
-            }
-
-            return {
-                crtType: getCrtType // 获得当前的课程类型信息，供其它模块调用
-            }
-
-        })($);
-
-        /**
-         * m-page 分页显示课程列表 子模块
-         * @param {Object} $   工具库对象lib的引用
-         * @param {Object} tab tab子模块的引用
-         */
-        var page = (function($, tab) {
-            var crtPage = 1; // 当前是第几页
-            var pages = $.dom.$('#m-page');
-
-            // 为每个切换课程分页的分页按钮添加点击事件处理
-            for (var i = 1; i < pages.children.length - 1; i++) {
-                pages.children[i].index = i;
-                $.event.add(pages.children[i], 'click', function() { // 添加切换课程分页的点击事件处理
-                    updateCourses(this.index);
-                });
-            }
-            // 添加上一页的点击事件处理
-            $.event.add($.dom.firstElem(pages), 'click', function() {
-                if (crtPage == 1) {
-                    return;
-                }
-                updateCourses(--crtPage);
-            });
-            // 添加下一页的点击事件处理
-            $.event.add($.dom.lastElem(pages), 'click', function() {
-                if (crtPage == pages.children.length - 2) {
-                    return;
-                }
-                updateCourses(++crtPage);
-            });
-
-            /**
-             * 更新课程
-             */
-            function updateCourses(pageNum) {
-
-                var data = {
-                    pageNo: pageNum,
-                    psize: CONS.Page_SIZE,
-                    type: tab.crtType()
-                }
-
-                crtPage = data.pageNo; // 更新当前的课程页数的记录
-
-                loadCourses(data); // 获取并显示课程
-
-                clearAllPageStyle();
-
-                pages.children[crtPage].setAttribute('class', 'z-crt');
-            }
-
-            /**
-             * 清空所有的选中状态
-             */
-            function clearAllPageStyle() {
-                for (var i = 1; i < pages.children.length - 1; i++) {
-                    pages.children[i].setAttribute('class', '');
-                }
-            }
-
-            /**
-             * 获得当前的课程类型信息
-             */
-            function getCrtPage() {
-                return crtPage;
-            }
-
-            return {
-                crtPage: getCrtPage // 获得当前的课程列表是第几页，供其它模块调用
-            }
-
-        })($, tab);
-
+            loadCourses();
+        });
 
         /**
          *  获取并显示课程
-         * @param {Object} data  异步获取课程信息的参数信息
          */
-        function loadCourses(data) {
+        function loadCourses() {
 
+            var data = {
+                pageNo: crtPage,
+                psize: CONS.Page_SIZE,
+                type: crtType,
+                hash: Math.random() // 随机参数避免
+            };
             $.ajax.get(CONS.URL, data, function(resp) { //获取课程数据，并异步处理
 
                 var courses = JSON.parse(resp); // 解析JSON
 
+                totalPage = courses.totalPage;
+                showPageNum = totalPage > CONS.MAX_PAGE_SHOW ? CONS.MAX_PAGE_SHOW : totalPage;
+
                 var list = $.dom.$('#m-course');
 
-                // 清空所有已有子节点
-                while ($.dom.firstElem(list)) {
-                    list.removeChild($.dom.firstElem(list));
+                createCourses();
+                createPages();
+
+                /**
+                 * 创建所有课程节点
+                 */
+                function createCourses() {
+                    // 清空所有已有子节点
+                    while ($.dom.firstElem(list)) {
+                        list.removeChild($.dom.firstElem(list));
+                    }
+
+                    // 创建当页所有子节点
+                    for (var i = 0; i < data.psize; i++) { // 注意js中i的非块级作用域
+                        list.appendChild(createCourseLiNode(i));
+                    }
                 }
 
-                // 创建当页所有子节点
-                for (var i = 0; i < data.psize; i++) {
-                    list.appendChild(createLiNode(i));
+                /**
+                 * 创建所有的分页器节点,实现简单分页同能
+                 * 通过上一页和下一页可以实现所有页面的浏览
+                 */
+                function createPages() {
+
+                    // 如果没有分页按钮，则初始化分页按钮
+                    if (pages.children.length <= 2) {
+                        for (var i = 1; i <= showPageNum; i++) { //注意js中i的非块级作用域
+                            pages.insertBefore(createPageLiNode(i), $.dom.lastElem(pages));
+                        }
+                    } else if (isNext) { // 点击了下一页按钮
+                        pages.insertBefore(createPageLiNode(crtPage), $.dom.lastElem(pages));
+                        pages.removeChild(pages.children[1]);
+                        isNext = false; // 恢复标志
+                    } else if (isPrev) { // 点急了上一页按钮
+                        pages.removeChild(pages.children[showPageNum]); // 先删除，后添加。要不然添加之后就多了一个元素
+                        pages.insertBefore(createPageLiNode(crtPage), pages.children[1]);
+                        isPrev = false; // 恢复标志
+                    }
+
+
+                    updatePageStatus(); // 更新分页器的状态
+
+                    /**
+                     * 更新分页器的状态
+                     */
+                    function updatePageStatus() {
+                        var minPage = pages.children[1].index; // 当前分页器中的最小值
+                        for (var i = 1; i < pages.children.length - 1; i++) {
+                            pages.children[i].setAttribute('class', '');
+                        }
+                        pages.children[crtPage - minPage + 1].setAttribute('class', 'z-crt');
+                    }
+                }
+
+
+
+                /**
+                 * 创建DOM节点
+                 * <li class="z-crt">1</li>
+                 * <li>2</li>
+                 * @param {Number} i 创建节点的索引值，用以从对象中获取到相应的值
+                 * @return {Object} DOM节点<li>
+                 */
+                function createPageLiNode(i) {
+                    var li = document.createElement('li');
+                    li.index = i; // 给每个课程节点添加索引属性
+                    $.dom.setText(li, i);
+
+                    // 分页器点击事件处理
+                    $.event.add(li, 'click', function() {
+                        crtPage = this.index;
+
+                        loadCourses();
+                    });
+
+                    return li;
                 }
 
                 /**
@@ -544,7 +522,7 @@ window.onload = function() {
                  * @param {Number} i 创建节点的索引值，用以从对象中获取到相应的值
                  * @return {Object} DOM节点<li>
                  */
-                function createLiNode(i) {
+                function createCourseLiNode(i) {
 
                     var li = document.createElement('li');
                     li.setAttribute('class', 'course');
