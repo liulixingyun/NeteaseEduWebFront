@@ -567,13 +567,13 @@
   float: left;
   margin-left: 50px;
   font-size: 12px;
-  line-height: 12px;
+  line-height: 22px;
   background-color: #2c3339;
 }
 .m-footer .copyright .logo{
   width: 243px;
   height: 22px;
-  margin: 92px 0 22px;
+  margin: 92px 0 17px;
   background: url(../img/logo.png) no-repeat 0 -30px;
 }
 .m-footer .nav{
