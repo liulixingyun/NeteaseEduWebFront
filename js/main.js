@@ -372,6 +372,9 @@ window.onload = function() {
     for (var i = 0; i < tabs.children.length; i++) {
       tabs.children[i].index = i;
       $.event.add(tabs.children[i], 'click', function() { // 添加切换课程类型的点击事件处理
+        if (!loadFinished) {  // 如果上一个ajax请求还没有加载完成，直接返回，不响应此次点击事件
+          return;             // 现在服务器响应速度很快，不加入判断影响不大。
+        }                     // 出于逻辑的完备性，建议加入判断
         crtPage = 1;  // 更新当前页数为第1页，因为切换tab从第1页开始显示
         var previndex = crtType == CONS.TYPE.PRODUCT_DESIGN ? 0 : 1;
         crtType = this.index == 0 ? CONS.TYPE.PRODUCT_DESIGN : CONS.TYPE.PROGRAM_LANGUAGE;
@@ -422,7 +425,7 @@ window.onload = function() {
         pageNo: crtPage,
         psize: CONS.Page_SIZE,
         type: crtType,
-        hash: Math.random() // 随机参数避免
+        // hash: Math.random() // 随机参数，避免有些服务器响应重复get请求
       };
       $.ajax.get(CONS.URL, data, function(resp) { //获取课程数据，并异步处理
 
@@ -502,6 +505,9 @@ window.onload = function() {
 
           // 分页器点击事件处理
           $.event.add(li, 'click', function() {
+            if (!loadFinished) {  // 如果上一个ajax请求还没有加载完成，直接返回，不响应此次点击事件
+              return;             // 现在服务器响应速度很快，不加入判断影响不大。
+            }                     // 出于逻辑的完备性，建议加入判断
             crtPage = this.index;
 
             loadCourses();
