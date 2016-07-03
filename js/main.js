@@ -362,15 +362,17 @@ window.onload = function() {
     var crtType = CONS.TYPE.PRODUCT_DESIGN; // 当前的类型
     var totalPage = null; // 服务器端总共有多少页的数据
     var showPageNum = null; // 屏幕中显示的分页器的个数
-    var isPrev = false,
-      isNext = false;
+    var isPrev = false, // 点击了上一页按钮之后，是否更新分页列表
+        isNext = false, // 点击了下一页按钮之后，是否更新分页列表
+        loadFinished = false;  // 本次的ajax请求是否完成。
+                               // 防止用户“快速、连续”点击上一页或下一页按钮，造成ajax加载完成之后异步触发的事件之间冲突
 
     loadCourses(); // 初始化课程列表的显示
 
     for (var i = 0; i < tabs.children.length; i++) {
       tabs.children[i].index = i;
       $.event.add(tabs.children[i], 'click', function() { // 添加切换课程类型的点击事件处理
-        crtPage = 1;
+        crtPage = 1;  // 更新当前页数为第1页，因为切换tab从第1页开始显示
         var previndex = crtType == CONS.TYPE.PRODUCT_DESIGN ? 0 : 1;
         crtType = this.index == 0 ? CONS.TYPE.PRODUCT_DESIGN : CONS.TYPE.PROGRAM_LANGUAGE;
 
@@ -383,8 +385,8 @@ window.onload = function() {
 
     // 添加上一页的点击事件处理
     $.event.add($.dom.firstElem(pages), 'click', function() {
-      if (crtPage == 1) {
-        return;
+      if (crtPage == 1 || !loadFinished) {  // 如果已经是第一页，或上一个ajax请求还没有加载完成
+        return;                             // 直接返回，不响应此次点击事件
       }
       var maxPage = pages.children[showPageNum].index;
       var minPage = pages.children[1].index;
@@ -397,8 +399,8 @@ window.onload = function() {
     });
     // 添加下一页的点击事件处理
     $.event.add($.dom.lastElem(pages), 'click', function() {
-      if (crtPage == totalPage) {
-        return;
+      if (crtPage == totalPage || !loadFinished) {  // 如果已经是最后一页，或上一个ajax请求还没有加载完成
+        return;                                     // 直接返回，不响应此次点击事件
       }
       var maxPage = pages.children[showPageNum].index;
       var minPage = pages.children[1].index;
@@ -414,6 +416,7 @@ window.onload = function() {
      *  获取并显示课程
      */
     function loadCourses() {
+      loadFinished = false; // 加载初始阶段，还未加载完成，阻止因切换页码导致的再次加载
 
       var data = {
         pageNo: crtPage,
@@ -432,6 +435,8 @@ window.onload = function() {
 
         createCourses(); // 创建所有课程节点
         createPages(); // 创建所有分页器节点
+
+        loadFinished = true; // 加载完成后，更新状态信息，允许因切换页码导致的再次加载
 
         /**
          * 创建所有的课程节点
