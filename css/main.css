@@ -282,7 +282,7 @@
   float: left;
   width: 20%;
   padding: 2px;
-  -moz-box-sizing:border-box;
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 /* /gallery module */
@@ -558,6 +558,8 @@
   width: 1205px;
   height: 262px;
   margin: 0 auto;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   padding-right: 214px;
   font-family: "Microsoft YaHei",sans-serif;
   color: #bebfc0;
