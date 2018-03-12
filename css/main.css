@@ -666,6 +666,10 @@
   color: #ccc;
   font: 16px "Microsoft YaHei",sans-serif;
 }
+.m-login :input-placeholder{ /* 还不被支持的标准写法，写在最后。向前兼容。 */
+  color: #ccc;
+  font: 16px "Microsoft YaHei",sans-serif;
+}
 .m-login .submit{
   position: absolute;
   width: 295px;
